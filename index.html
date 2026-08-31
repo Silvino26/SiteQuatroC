@@ -1729,6 +1729,68 @@ img, svg, video, canvas { max-width: 100%; }
 }
 </style>
 
+<style id="opcoes-em-botoes">
+/* Forma de pagamento e parcelas como botões, no lugar das listas */
+.opt-btn {
+  width: 100%;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-start;
+  text-align: left;
+  border-radius: 14px;
+  border: 1.5px solid #E2E8F0;
+  background: #F8FAFC;
+  color: #475569;
+  cursor: pointer;
+  transition: border-color .16s ease, background .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+.opt-btn:hover { border-color: rgba(206,46,60,.35); background: #fff; transform: translateY(-1px); }
+.opt-btn[aria-pressed="true"] {
+  border-color: #CE2E3C;
+  background: #FFF7F8;
+  color: #A3222E;
+  box-shadow: 0 0 0 3px rgba(206,46,60,.08);
+}
+.opt-btn-title { font-size: 14px; font-weight: 700; letter-spacing: -.01em; }
+.opt-btn-sub { font-size: 11.5px; font-weight: 500; color: #94A3B8; }
+.opt-btn[aria-pressed="true"] .opt-btn-sub { color: #C2606B; }
+
+.opt-chip {
+  padding: 11px 8px;
+  border-radius: 12px;
+  border: 1.5px solid #E2E8F0;
+  background: #F8FAFC;
+  color: #475569;
+  cursor: pointer;
+  text-align: center;
+  line-height: 1.25;
+  transition: border-color .16s ease, background .16s ease, transform .16s ease;
+}
+.opt-chip:hover { border-color: rgba(206,46,60,.35); background: #fff; transform: translateY(-1px); }
+.opt-chip[aria-pressed="true"] { border-color: #CE2E3C; background: #FFF7F8; color: #A3222E; }
+.opt-chip-qtd { display: block; font-size: 14px; font-weight: 800; }
+.opt-chip-val { display: block; font-size: 11px; font-weight: 500; color: #94A3B8; }
+.opt-chip[aria-pressed="true"] .opt-chip-val { color: #C2606B; }
+
+/* Botão secundário, para ações que não são o caminho principal */
+.btn-suave {
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: 12px;
+  border: 1.5px solid #E2E8F0;
+  background: #fff;
+  color: #64748B;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color .16s ease, color .16s ease, background .16s ease;
+}
+.btn-suave:hover { border-color: rgba(206,46,60,.30); color: #A3222E; background: #FFF7F8; }
+</style>
 </head>
 <body>
 <div class="topbar"></div>
@@ -2218,14 +2280,22 @@ img, svg, video, canvas { max-width: 100%; }
 <div class="hidden space-y-4" id="negotiationPaymentBlock">
 <div class="space-y-1.5">
 <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400 pl-1 font-sans">Forma de pagamento</label>
-<select class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-accent transition font-sans font-medium text-slate-700" id="paymentModeInput">
-<option value="vista">Pagamento à vista</option>
-<option value="parcelado">Pagamento parcelado</option>
-</select>
+<input id="paymentModeInput" type="hidden" value="vista"/>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="paymentModeButtons" role="group">
+<button aria-pressed="true" class="opt-btn font-sans" data-mode="vista" type="button">
+<span class="opt-btn-title">À vista</span>
+<span class="opt-btn-sub" id="optVistaSub">Pagamento único</span>
+</button>
+<button aria-pressed="false" class="opt-btn font-sans" data-mode="parcelado" type="button">
+<span class="opt-btn-title">Parcelado</span>
+<span class="opt-btn-sub" id="optParceladoSub">Escolha as parcelas</span>
+</button>
 </div>
-<div class="space-y-1.5">
-<select class="hidden w-full p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-accent transition font-sans font-medium text-slate-700" id="installmentCountInput">
-</select>
+</div>
+<div class="space-y-1.5 hidden" id="installmentBlock">
+<label class="text-[10px] font-bold uppercase tracking-wider text-slate-400 pl-1 font-sans">Quantidade de parcelas</label>
+<input id="installmentCountInput" type="hidden" value=""/>
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 font-sans" id="installmentButtons" role="group"></div>
 </div>
 </div>
 <div class="p-5 border border-slate-200/80 rounded-2xl bg-slate-50/50 space-y-3 mt-4">
@@ -2263,22 +2333,56 @@ img, svg, video, canvas { max-width: 100%; }
 <div class="mx-auto w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600">
 <i class="fas fa-check-double text-lg"></i>
 </div>
-<div class="space-y-4 max-w-sm mx-auto">
-<h3 class="text-xl font-semibold tracking-tight text-navy">Negociação concluída com sucesso</h3>
-<p class="text-sm text-slate-500 leading-relaxed font-sans">
-                                    Recebemos a confirmação da sua negociação.
+<div class="space-y-4 max-w-md mx-auto">
+<h3 class="text-xl font-semibold tracking-tight text-navy">Negociação formalizada</h3>
+<p class="text-sm text-slate-600 leading-relaxed font-sans font-medium">
+                                    Sua negociação foi confirmada e já está registrada.
                                 </p>
-<p class="text-sm text-slate-500 leading-relaxed font-sans">
-                                    Os boletos e orientações do acordo serão enviados em breve pelos contatos informados neste atendimento.
+<div class="rounded-2xl border border-emerald-100 bg-emerald-50/60 px-4 py-3.5 text-left space-y-1.5">
+<p class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 font-sans">Próximo passo</p>
+<p class="text-sm text-slate-600 leading-relaxed font-sans" id="negotiationSuccessBoleto">
+                                        Seguiremos com o envio do boleto para os contatos informados neste atendimento.
+                                    </p>
+<p class="text-xs text-slate-500 leading-relaxed font-sans hidden" id="negotiationSuccessAcordo"></p>
+</div>
+</div>
+</div>
+<div class="space-y-3 pt-2">
+<button class="btn-suave font-sans" id="btnNegotiationSuccessChat" type="button">
+                                Ainda tenho uma dúvida
+                            </button>
+<p class="text-[11px] text-slate-400 font-medium text-center font-sans">
+                                Central de Atendimento Quatro C: 0800 025 5072 ou (11) 3323-9412.
+                            </p>
+</div>
+</div>
+<div class="view space-y-6" id="vNegotiationFailed">
+<div class="text-center py-4 space-y-4">
+<div class="mx-auto w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center text-amber-600">
+<i class="fas fa-headset text-lg"></i>
+</div>
+<div class="space-y-4 max-w-md mx-auto">
+<h3 class="text-xl font-semibold tracking-tight text-navy">Não foi possível concluir agora</h3>
+<p class="text-sm text-slate-600 leading-relaxed font-sans font-medium">
+                                    Não conseguimos formalizar a sua negociação neste momento.
                                 </p>
+<div class="rounded-2xl border border-amber-100 bg-amber-50/60 px-4 py-3.5 text-left space-y-1.5">
+<p class="text-[10px] font-bold uppercase tracking-wider text-amber-700 font-sans">O que já fizemos</p>
+<p class="text-sm text-slate-600 leading-relaxed font-sans" id="negotiationFailedMsg">
+                                        Já encaminhamos a sua solicitação para a nossa equipe de atendimento, que dará continuidade e entrará em contato pelos dados informados.
+                                    </p>
+</div>
 <p class="text-sm text-slate-500 leading-relaxed font-sans">
-                                    Caso precise de qualquer esclarecimento adicional, nossa equipe permanece à disposição pelos canais abaixo.
+                                    Se preferir resolver agora, fale direto com um de nossos atendentes.
                                 </p>
 </div>
 </div>
 <div class="space-y-3 pt-2">
-<button class="w-full bg-navy text-white font-bold py-4 rounded-xl hover:bg-accent transition shadow-md uppercase tracking-widest text-xs font-sans" id="btnNegotiationSuccessChat" type="button">
-                                Falar com o atendimento
+<button class="w-full bg-navy text-white font-bold py-4 rounded-xl hover:bg-slate-800 transition shadow-md uppercase tracking-widest text-xs font-sans" id="btnNegotiationFailedChat" type="button">
+                                Falar com o atendimento agora
+                            </button>
+<button class="btn-suave font-sans" id="btnNegotiationFailedRestart" type="button">
+                                Voltar ao início
                             </button>
 <p class="text-[11px] text-slate-400 font-medium text-center font-sans">
                                 Central de Atendimento Quatro C: 0800 025 5072 ou (11) 3323-9412.
@@ -2428,6 +2532,8 @@ img, svg, video, canvas { max-width: 100%; }
 </footer>
 
 <script>
+        const BITRIX_ENDPOINT = "https://grupoasserth.bitrix24.com.br/rest/1/15a2h0vrp7wfb31l/crm.lead.add.json";
+    </script><script>
         document.addEventListener("DOMContentLoaded", () => {
             const CRM_ENDPOINT = "https://billowing-voice-6efd.asilvino19.workers.dev/";
 
@@ -2640,7 +2746,6 @@ img, svg, video, canvas { max-width: 100%; }
             }
 
             function goStart() {
-                limparSessionToken();
                 currentDoc = "";
                 foundRecord = null;
                 selectedCard = null;
@@ -2651,65 +2756,15 @@ img, svg, video, canvas { max-width: 100%; }
                 setActiveView("vStart");
             }
 
-            // ==========================================
-            // SESSÃO — o fluxo devolve um sessionToken lacrado a cada etapa.
-            // O front apenas guarda e reenvia: quem confere o conteúdo é o n8n.
-            // ==========================================
-            const SESSION_TOKEN_KEY = "aa_sessionToken";
-            const lerSessionToken    = () => sessionStorage.getItem(SESSION_TOKEN_KEY) || "";
-            const limparSessionToken = () => sessionStorage.removeItem(SESSION_TOKEN_KEY);
-
             async function callBackend(step, payload) {
                 const body = { step, sessionId, ...payload };
-
-                if (step === "consulta_inicial") {
-                    limparSessionToken();            // nova jornada: descarta a sessão anterior
-                } else {
-                    const token = lerSessionToken();
-                    if (!token) {
-                        return {
-                            status: "erro",
-                            proximoStep: "sessao_expirada",
-                            mensagem: "Sua sessão expirou. Toque em Tentar novamente para recomeçar."
-                        };
-                    }
-                    body.sessionToken = token;       // todas as etapas seguintes reenviam o lacre
-                }
-
-                let res, data;
-                try {
-                    res = await fetch(CRM_ENDPOINT, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(body)
-                    });
-                    data = await res.json();
-                } catch (e) {
-                    return {
-                        status: "erro",
-                        proximoStep: "servico_indisponivel",
-                        mensagem: "Não conseguimos concluir agora. Tente novamente em alguns instantes."
-                    };
-                }
-
-                if (!res.ok) {
-                    return {
-                        status: "erro",
-                        proximoStep: "servico_indisponivel",
-                        mensagem: (data && data.mensagem) ||
-                            "Não conseguimos concluir agora. Tente novamente em alguns instantes."
-                    };
-                }
-
-                // guarda o token renovado que veio nesta resposta
-                if (data && data.sessionToken) {
-                    sessionStorage.setItem(SESSION_TOKEN_KEY, data.sessionToken);
-                }
-                if (data && data.proximoStep === "sessao_expirada") {
-                    limparSessionToken();
-                }
-
-                return data;
+                const res = await fetch(CRM_ENDPOINT, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(body)
+                });
+                if (!res.ok) throw new Error(`Falha backend: ${res.status}`);
+                return await res.json();
             }
 
             function openChat(url) { window.open(url || CHAT_LINK_AMIL_DEFAULT, "_blank", "noopener,noreferrer"); }
@@ -3147,24 +3202,86 @@ function renderIdentityOptions(options, fullName, typeUpper) {
 
             function getInstallmentAmount(total, count) { const nTotal = Number(total || 0); const nCount = Number(count || 0); if (!Number.isFinite(nTotal) || !Number.isFinite(nCount) || nCount <= 0) return 0; return nTotal / nCount; }
 
+            // Forma de pagamento e parcelas são botões (não mais listas). O valor
+            // continua em inputs escondidos, para o resto da aplicação ler igual.
+            function marcarSelecionado(container, chaveDataset, valor) {
+                const box = $(container); if (!box) return;
+                box.querySelectorAll("button").forEach(b => {
+                    b.setAttribute("aria-pressed", String(b.dataset[chaveDataset] === String(valor)));
+                });
+            }
+
+            function setPaymentMode(mode) {
+                const modeInput = $("paymentModeInput"); if (!modeInput) return;
+                modeInput.value = mode;
+                marcarSelecionado("paymentModeButtons", "mode", mode);
+                updateInstallmentUI();
+            }
+
+            function setInstallmentCount(qtd) {
+                const countInput = $("installmentCountInput"); if (!countInput) return;
+                countInput.value = String(qtd);
+                marcarSelecionado("installmentButtons", "qtd", qtd);
+                updateInstallmentUI();
+            }
+
             function updateInstallmentUI() {
-                const modeInput = $("paymentModeInput"); const countInput = $("installmentCountInput"); const summary = $("negotiationInstallmentSummary");
-                const totalEl = $("negotiationInstallmentTotal"); const valueEl = $("negotiationInstallmentValue"); const mode = modeInput ? modeInput.value : "vista";
+                const modeInput = $("paymentModeInput"); const countInput = $("installmentCountInput");
+                const block = $("installmentBlock"); const summary = $("negotiationInstallmentSummary");
+                const totalEl = $("negotiationInstallmentTotal"); const valueEl = $("negotiationInstallmentValue");
+                const mode = modeInput ? modeInput.value : "vista";
                 const canParcel = selectedCard?.permiteParcelamento === true && Array.isArray(selectedCard?.parcelamento?.parcelasDisponiveis) && selectedCard.parcelamento.parcelasDisponiveis.length > 0;
-                if (!canParcel || mode !== "parcelado") { if (countInput) countInput.classList.add("hidden"); if (summary) summary.classList.add("hidden"); return; }
-                if (countInput) countInput.classList.remove("hidden"); if (summary) summary.classList.remove("hidden");
-                const qtd = Number(countInput?.value || selectedCard.parcelamento.parcelasDisponiveis[0] || 0); const totalParcelado = Number(selectedCard?.parcelamento?.valorNegociadoParcelado || 0); const valorParcela = getInstallmentAmount(totalParcelado, qtd);
-                if (totalEl) totalEl.textContent = selectedCard?.parcelamento?.valorNegociadoParceladoFormatado || formatBRL(totalParcelado); if (valueEl) valueEl.textContent = qtd ? `${qtd}x de ${formatBRL(valorParcela)}` : "-";
+                if (!canParcel || mode !== "parcelado") {
+                    if (block) block.classList.add("hidden");
+                    if (summary) summary.classList.add("hidden");
+                    return;
+                }
+                if (block) block.classList.remove("hidden");
+                if (summary) summary.classList.remove("hidden");
+                const qtd = Number(countInput?.value || 0);
+                const totalParcelado = Number(selectedCard?.parcelamento?.valorNegociadoParcelado || 0);
+                const valorParcela = getInstallmentAmount(totalParcelado, qtd);
+                if (totalEl) totalEl.textContent = selectedCard?.parcelamento?.valorNegociadoParceladoFormatado || formatBRL(totalParcelado);
+                if (valueEl) valueEl.textContent = qtd ? `${qtd}x de ${formatBRL(valorParcela)}` : "-";
             }
 
             function setupPaymentOptions(card) {
-                const block = $("negotiationPaymentBlock"); const modeInput = $("paymentModeInput"); const countInput = $("installmentCountInput"); const summary = $("negotiationInstallmentSummary");
-                const parcelas = Array.isArray(card?.parcelamento?.parcelasDisponiveis) ? card.parcelamento.parcelasDisponiveis : []; const canParcel = card?.permiteParcelamento === true && parcelas.length > 0;
+                const block = $("negotiationPaymentBlock"); const modeInput = $("paymentModeInput");
+                const countInput = $("installmentCountInput"); const summary = $("negotiationInstallmentSummary");
+                const instBlock = $("installmentBlock"); const instButtons = $("installmentButtons");
+                const parcelas = Array.isArray(card?.parcelamento?.parcelasDisponiveis) ? card.parcelamento.parcelasDisponiveis : [];
+                const canParcel = card?.permiteParcelamento === true && parcelas.length > 0;
                 if (!block || !modeInput || !countInput) return;
-                if (!canParcel) { block.classList.add("hidden"); countInput.classList.add("hidden"); if (summary) summary.classList.add("hidden"); modeInput.value = "vista"; countInput.innerHTML = ""; return; }
-                block.classList.remove("hidden"); modeInput.value = "vista";
-                countInput.innerHTML = parcelas.map(qtd => { const valorParcela = getInstallmentAmount(card.parcelamento.valorNegociadoParcelado, qtd); return `<option value="${qtd}">${qtd}x de ${formatBRL(valorParcela)}</option>`; }).join("");
-                updateInstallmentUI();
+
+                if ($("optVistaSub")) {
+                    $("optVistaSub").textContent = card?.propostaQuitacaoFormatada || "Pagamento único";
+                }
+
+                if (!canParcel) {
+                    block.classList.add("hidden");
+                    if (instBlock) instBlock.classList.add("hidden");
+                    if (summary) summary.classList.add("hidden");
+                    if (instButtons) instButtons.innerHTML = "";
+                    countInput.value = "";
+                    setPaymentMode("vista");
+                    return;
+                }
+
+                block.classList.remove("hidden");
+                const maxParcelas = Math.max.apply(null, parcelas);
+                if ($("optParceladoSub")) $("optParceladoSub").textContent = "Em até " + maxParcelas + "x";
+
+                if (instButtons) {
+                    instButtons.innerHTML = parcelas.map(qtd => {
+                        const valorParcela = getInstallmentAmount(card.parcelamento.valorNegociadoParcelado, qtd);
+                        return '<button type="button" class="opt-chip" data-qtd="' + qtd + '" aria-pressed="false">'
+                             + '<span class="opt-chip-qtd">' + qtd + 'x</span>'
+                             + '<span class="opt-chip-val">' + formatBRL(valorParcela) + '</span></button>';
+                    }).join("");
+                }
+                countInput.value = String(parcelas[0] || "");
+                marcarSelecionado("installmentButtons", "qtd", countInput.value);
+                setPaymentMode("vista");
             }
 
             function openSecondCopyNegotiation(card) {
@@ -3192,7 +3309,7 @@ function renderIdentityOptions(options, fullName, typeUpper) {
 
                 if (isSecondVia) {
                     if ($("negotiationPaymentBlock")) $("negotiationPaymentBlock").classList.add("hidden");
-                    if ($("installmentCountInput")) $("installmentCountInput").classList.add("hidden");
+                    if ($("installmentBlock")) $("installmentBlock").classList.add("hidden");
                     if ($("negotiationInstallmentSummary")) $("negotiationInstallmentSummary").classList.add("hidden");
                     if ($("paymentModeInput")) $("paymentModeInput").value = "vista";
                     const borderBox = $("negotiationProposal")?.parentElement?.parentElement;
@@ -3345,14 +3462,27 @@ function renderIdentityOptions(options, fullName, typeUpper) {
             on("btnNovaConsultaNoDebt", "click", goStart);
             on("btnNovaConsultaErr", "click", goStart);
             on("btnNegotiationSuccessChat", "click", () => openChat(lastHumanChat || CHAT_LINK_AMIL_DEFAULT));
+            on("btnNegotiationFailedChat", "click", () => openChat(lastHumanChat || CHAT_LINK_AMIL_DEFAULT));
+            on("btnNegotiationFailedRestart", "click", goStart);
             on("btnSecondCopySuccessChat", "click", () => openChat(lastHumanChat || CHAT_LINK_AMIL_DEFAULT));
             on("btnIraSuccessChat", "click", () => openChat(lastHumanChat || CHAT_LINK_IRA));
 
             on("btnBlockedHumano", "click", () => openChat(lastHumanChat));
             on("btnAgreementHumano", "click", () => openChat(lastHumanChat));
             on("btnNegotiationHumano", "click", () => openChat(lastHumanChat));
-            on("paymentModeInput", "change", updateInstallmentUI);
-            on("installmentCountInput", "change", updateInstallmentUI);
+            // botões de forma de pagamento e de quantidade de parcelas
+            (function () {
+                const modeBox = $("paymentModeButtons");
+                if (modeBox) modeBox.addEventListener("click", (ev) => {
+                    const b = ev.target.closest("button[data-mode]"); if (!b) return;
+                    setPaymentMode(b.dataset.mode);
+                });
+                const instBox = $("installmentButtons");
+                if (instBox) instBox.addEventListener("click", (ev) => {
+                    const b = ev.target.closest("button[data-qtd]"); if (!b) return;
+                    setInstallmentCount(Number(b.dataset.qtd));
+                });
+            })();
             
             // ==========================================
             // COMUNICAÇÃO ASSÍNCRONA COM O WORKER (PRESERVADA)
@@ -3566,8 +3696,32 @@ function renderIdentityOptions(options, fullName, typeUpper) {
                 setActiveView("vLoading");
                 try {
                     const data = await callBackend("confirmar_negociacao", { documento: currentDoc, nomeInformado: $("nameInput")?.value.trim() || "", telefoneInformado: onlyDigits($("phoneInput")?.value || ""), emailInformado: $("emailInput")?.value.trim() || "", credor: selectedCard.credor, idContrato: selectedCard.idContrato, numeroContrato: selectedCard.numeroContrato, valorTotal: selectedCard.valorTotal, propostaQuitacao: isSecondVia ? selectedCard.valorTotal : selectedCard.propostaQuitacao, dataPagamento: paymentDate, tipoPagamento: isSecondVia ? "segunda_via" : (isParcelado ? "parcelado" : "avista"), quantidadeParcelas: isParcelado ? installmentCount : 1, valorNegociado, valorNegociadoFormatado: formatBRL(valorNegociado), valorParcela, valorParcelaFormatado: formatBRL(valorParcela), parcelamento: selectedCard.parcelamento || {} });
+                    // CRM não formalizou: tela própria, nunca confirmação de negociação
+                    if (data?.proximoStep === "falha_negociacao" || data?.formalizado === false) {
+                        if (data?.mensagem && $("negotiationFailedMsg")) $("negotiationFailedMsg").textContent = data.mensagem;
+                        lastHumanChat = selectedCard?.chatUrl || lastHumanChat || CHAT_LINK_AMIL_DEFAULT;
+                        return setActiveView("vNegotiationFailed");
+                    }
                     if (data?.proximoStep === "sucesso_negociacao" || data?.status === "ok") {
-                        return setActiveView(isSecondVia ? "vSecondCopySuccess" : "vNegotiationSuccess");
+                        if (isSecondVia) return setActiveView("vSecondCopySuccess");
+                        // um boleto à vista, um por parcela quando parcelado
+                        const qtdBoletos = isParcelado ? Math.max(1, installmentCount) : 1;
+                        const alvoBoleto = $("negotiationSuccessBoleto");
+                        if (alvoBoleto) {
+                            alvoBoleto.textContent = qtdBoletos > 1
+                                ? `Seguiremos com o envio dos ${qtdBoletos} boletos do parcelamento para os contatos informados neste atendimento.`
+                                : "Seguiremos com o envio do boleto para os contatos informados neste atendimento.";
+                        }
+                        const alvoAcordo = $("negotiationSuccessAcordo");
+                        if (alvoAcordo) {
+                            if (data?.idAcordo) {
+                                alvoAcordo.textContent = `Protocolo do acordo: ${data.idAcordo}`;
+                                alvoAcordo.classList.remove("hidden");
+                            } else {
+                                alvoAcordo.classList.add("hidden");
+                            }
+                        }
+                        return setActiveView("vNegotiationSuccess");
                     }
                     const errorMsg = $("errorMsg"); if (errorMsg) errorMsg.textContent = data?.mensagem || "Não foi possível concluir a negociação.";
                     setActiveView("vError");
